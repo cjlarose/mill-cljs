@@ -29,7 +29,7 @@
          (< x (js/Math.pow 2 31))
          (>= x (- (js/Math.pow 2 31)))]}
   (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
-    {:scalarity 0 :valid? true :value buffer}))
+    {:scalar? true :valid? true :value buffer}))
 
 (def nar (assoc (signed-scalar -1) :valid? false))
 
@@ -66,7 +66,7 @@
                       pairs)
         overflowed? (= carry 1)
         to-value    (fn [byte-seq]
-                      {:scalarity 0
+                      {:scalar? true
                        :valid? true
                        :value (byte-seq->buffer byte-seq)})]
     (case overflow
@@ -100,11 +100,11 @@
         rhs (belt-nth belt b)]
     (cond
       (or (nar? lhs) (nar? rhs))
-        [{:width 4 :scalarity 0 :valid? false :value -1}]
+        [{:scalar? true :valid? false :value -1}]
       (or (none? lhs) (none? rhs))
-        [{:width 4 :scalarity 0 :valid? false :value 0}]
+        [{:scalar? true :valid? false :value 0}]
       :else
-        [{:width 4 :scalarity 0 :valid? true :value (+ (:value lhs) (:value rhs))}])))
+        [{:scalar? true :valid? true :value (+ (:value lhs) (:value rhs))}])))
 
 ;; (def-core-op add
 ;;   {:domains [:unsigned-integer :signed-integer :pointer
