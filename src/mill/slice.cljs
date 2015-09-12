@@ -21,7 +21,7 @@
     (< x (js/Math.pow 2 31))
     (>= x (- (js/Math.pow 2 31)))))
 
-(defn int-vector
+(defn int-slice
   "Produces a vector of byte-width 4 for the given seq of integers"
   [& xs]
   {:pre [(every? valid-int? xs)]}
