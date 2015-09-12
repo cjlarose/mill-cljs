@@ -31,6 +31,8 @@
   (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
     {:scalarity 0 :valid? true :value buffer}))
 
+(def nar (assoc (signed-scalar -1) :valid? false))
+
 (defn widen
   "Doubles the width of an unsigned integer, zero-extending to the left"
   [{:keys [value] :as operand}]
@@ -39,10 +41,49 @@
     (.copy value new-buffer old-length)
     (assoc operand :value new-buffer)))
 
-(defn bytes-seq
+(defn buffer->byte-seq
   "Gets the octets of a Buffer as a list"
   [buffer]
   (map #(aget buffer %) (range (.-length buffer))))
+
+(defn byte-seq->buffer [byte-seq]
+  (js/Buffer. (clj->js byte-seq)))
+
+(defn addu
+  "Unsigned integer addition."
+  ;; TODO: Figure out if add is supposed to widen operands or only accept
+  ;; equal-width operands. For now, assume same width
+  [overflow x y]
+  (let [rev-bytes   (comp reverse buffer->byte-seq :value)
+        pairs       (map vector (rev-bytes x) (rev-bytes y))
+        [sum carry] (reduce
+                      (fn [[sum carry] [a b]]
+                        (let [byte-sum (+ a b carry)]
+                          [(cons (mod byte-sum 256) sum) (quot byte-sum 256)]))
+                      ['() 0]
+                      pairs)
+        overflowed? (= carry 1)
+        to-value    (fn [byte-seq]
+                      {:scalarity 0
+                       :valid? true
+                       :value (byte-seq->buffer byte-seq)})]
+    (case overflow
+      :modulo
+        (to-value sum)
+      :saturating
+        (if overflowed?
+          (to-value (take (.-length (:value x)) (repeat 255)))
+          (to-value sum))
+      :widening
+        (if overflowed?
+          (let [operand-width (.-length (:value x))
+                new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
+            (to-value new-bytes))
+          (to-value sum))
+      :excepting
+        (if overflowed?
+          nar
+          (to-value sum)))))
 
 (defn belt-nth [belt pos-sym]
   (->> pos-sym
