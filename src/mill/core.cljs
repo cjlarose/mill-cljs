@@ -45,6 +45,25 @@
       :else
         [{:width 4 :scalarity 0 :valid? true :value (+ (:value lhs) (:value rhs))}])))
 
+;; (def-core-op add
+;;   {:domains [:unsigned-integer :signed-integer :pointer
+;;              :binary-floating-point :decimal-floating-point]
+;;    :overflow [:modulo :saturating :excepting :widening]
+;;    :rounding [:from-zero :to-even :to-negative-inf :to-positive-inf :to-zero]
+;;    :signatures [[:exu-arg :exu-arg]]
+;;    :scalarities [:scalar :vector]}
+;;
+;;   (addu
+;;     [overflow exu1 exu2] '())
+;;   (adds
+;;     [overflow exu1 exu2] '())
+;;   (addp
+;;     [exu1 exu2] '())
+;;   (addf
+;;     [rounding exu1 exu2] '())
+;;   (addd
+;;     [rounding exu1 exu2] '()))
+
 ;; (defonce conn
 ;;   (repl/connect "http://localhost:9000/repl"))
 
