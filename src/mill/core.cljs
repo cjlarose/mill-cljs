@@ -1,15 +1,10 @@
 (ns mill.core
-  (:require [mill.slice :refer [from-octet-seq]]))
+  (:require [mill.nar :refer [none]]))
 
 (def tin
   {:belt-size 8
    :max-scalar-size 8
    :max-operand-size 8})
-
-(def none {:valid? false
-           :slice (from-octet-seq 1 [0])})
-(def nar {:valid? false
-          :slice (from-octet-seq 1 [-1])})
 
 (defn machine [{:keys [belt-size] :as family-member}]
   {:belt (repeat belt-size none)
@@ -27,12 +22,12 @@
 ; (defn nar? [operand]
 ;   (and (not (:valid? operand)) (not= (:value operand) 0)))
 
-(defn belt-nth [belt pos-sym]
-  (->> pos-sym
-       (name)
-       (drop 1)
-       (apply str)
-       (js/parseInt)
-       (nth belt)))
+; (defn belt-nth [belt pos-sym]
+;   (->> pos-sym
+;        (name)
+;        (drop 1)
+;        (apply str)
+;        (js/parseInt)
+;        (nth belt)))
 
 (enable-console-print!)
