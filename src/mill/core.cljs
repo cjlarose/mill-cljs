@@ -1,5 +1,5 @@
 (ns mill.core
-  (:require [mill.slice :refer [octet-seq->slice]]))
+  (:require [mill.slice :refer [from-octet-seq]]))
 
 (def tin
   {:belt-size 8
@@ -7,9 +7,9 @@
    :max-operand-size 8})
 
 (def none {:valid? false
-           :slice (octet-seq->slice 1 [0])})
+           :slice (from-octet-seq 1 [0])})
 (def nar {:valid? false
-          :slice (octet-seq->slice 1 [-1])})
+          :slice (from-octet-seq 1 [-1])})
 
 (defn machine [{:keys [belt-size] :as family-member}]
   {:belt (repeat belt-size none)

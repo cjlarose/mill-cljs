@@ -16,7 +16,7 @@
   (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
     {:byte-width 4 :buffer buffer}))
 
-(defn octet-seq->slice [byte-width octet-seq]
+(defn from-octet-seq [byte-width octet-seq]
   {:byte-width byte-width
    :buffer (js/Buffer. (clj->js octet-seq))})
 
