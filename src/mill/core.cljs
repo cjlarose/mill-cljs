@@ -1,8 +1,10 @@
 (ns mill.core
   (:require [clojure.browser.repl :as repl]))
 
-(def imaginary-member
-  {:belt-size 8})
+(def tin
+  {:belt-size 8
+   :max-scalar-size 8
+   :max-operand-size 8})
 
 (defn machine [{:keys [belt-size] :as family-member}]
   {:belt (repeat belt-size :none)
@@ -20,8 +22,14 @@
 (defn nar? [operand]
   (and (not (:valid? operand)) (not= (:value operand) 0)))
 
-(defn w [constant]
-  {:width 4 :scalarity 0 :valid? true :value constant})
+(defn make-signed-scalar
+  "Produces a belt scalar of width 4 for the given integer"
+  [x]
+  {:pre [(js/Number.isSafeInteger x)
+         (< x (js/Math.pow 2 31))
+         (>= x (- (js/Math.pow 2 31)))]}
+  (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
+    {:scalarity 0 :valid? true :value buffer}))
 
 (defn con [belt constant]
   [constant])
