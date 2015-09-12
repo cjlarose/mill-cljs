@@ -22,7 +22,7 @@
 (defn nar? [operand]
   (and (not (:valid? operand)) (not= (:value operand) 0)))
 
-(defn make-signed-scalar
+(defn signed-scalar
   "Produces a belt scalar of width 4 for the given integer"
   [x]
   {:pre [(js/Number.isSafeInteger x)
@@ -30,6 +30,14 @@
          (>= x (- (js/Math.pow 2 31)))]}
   (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
     {:scalarity 0 :valid? true :value buffer}))
+
+(defn widen
+  "Doubles the width of an unsigned integer, zero-extending to the left"
+  [{:keys [value] :as operand}]
+  (let [old-length (.-length value)
+        new-buffer (doto (js/Buffer. (* 2 old-length)) (.fill 0))]
+    (.copy value new-buffer old-length)
+    (assoc operand :value new-buffer)))
 
 (defn con [belt constant]
   [constant])
