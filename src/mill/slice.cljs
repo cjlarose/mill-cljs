@@ -9,13 +9,19 @@
     :buffer (doto (js/Buffer. (* length byte-width))
               (.fill fill-value))}))
 
-(defn signed-scalar
-  "Produces a scalar of width 4 for the given integer"
-  [x]
-  {:pre [(js/Number.isSafeInteger x)
-         (< x (js/Math.pow 2 31))
-         (>= x (- (js/Math.pow 2 31)))]}
-  (let [buffer (doto (js/Buffer. 4) (.writeIntBE x 0 4))]
+(defn- valid-int? [x]
+  (and
+    (js/Number.isSafeInteger x)
+    (< x (js/Math.pow 2 31))
+    (>= x (- (js/Math.pow 2 31)))))
+
+(defn int-vector
+  "Produces a vector of byte-width 4 for the given seq of integers"
+  [& xs]
+  {:pre [(every? valid-int? xs)]}
+  (let [buffer (js/Buffer. (* 4 (count xs)))]
+    (doseq [[i x] (map-indexed vector xs)]
+      (.writeInt32BE buffer x (* i 4)))
     {:byte-width 4 :buffer buffer}))
 
 (defn from-octet-seq [byte-width octet-seq]
