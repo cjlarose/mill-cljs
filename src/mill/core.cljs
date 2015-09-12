@@ -39,8 +39,10 @@
     (.copy value new-buffer old-length)
     (assoc operand :value new-buffer)))
 
-(defn con [belt constant]
-  [constant])
+(defn bytes-seq
+  "Gets the octets of a Buffer as a list"
+  [buffer]
+  (map #(aget buffer %) (range (.-length buffer))))
 
 (defn belt-nth [belt pos-sym]
   (->> pos-sym
