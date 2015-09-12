@@ -53,6 +53,8 @@
   "Unsigned integer addition."
   ;; TODO: Figure out if add is supposed to widen operands or only accept
   ;; equal-width operands. For now, assume same width
+  ;; What happens if you try to perform a widening add with the largest
+  ;; possible width operands?
   [overflow x y]
   (let [rev-bytes   (comp reverse buffer->byte-seq :value)
         pairs       (map vector (rev-bytes x) (rev-bytes y))
