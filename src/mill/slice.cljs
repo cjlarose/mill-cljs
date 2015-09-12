@@ -28,10 +28,9 @@
 (defn- elements
   "Returns a seq of buffers representing elements of the given slice"
   [{:keys [buffer byte-width]}]
-  (let [num-elements (/ (.-length buffer) byte-width)]
-    (map
-      (fn [i] (.slice buffer (* i byte-width) (+ byte-width (* i byte-width))))
-      (range num-elements))))
+  (map
+    (fn [offset] (.slice buffer offset (+ offset byte-width)))
+    (range 0 (.-length buffer) byte-width)))
 
 (defn widen
   "Doubles the width of a slice, zero-extending each element to the left"
