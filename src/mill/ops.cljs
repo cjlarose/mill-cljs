@@ -1,4 +1,6 @@
-(ns mill.ops)
+(ns mill.ops
+  (:require [mill.slice :refer [slice octet-seq from-octet-seq]]
+            [mill.nar :refer [nar]]))
 
 (defn addu
   "Unsigned integer addition."
@@ -7,7 +9,7 @@
   ;; TODO: Figure out what happens if you try to perform a widening add with
   ;; the largest possible width operands?
   [overflow x y]
-  (let [rev-bytes   (comp reverse buffer->byte-seq :value)
+  (let [rev-bytes   (comp reverse octet-seq)
         pairs       (map vector (rev-bytes x) (rev-bytes y))
         [sum carry] (reduce
                       (fn [[sum carry] [a b]]
@@ -17,18 +19,19 @@
                       pairs)
         overflowed? (= carry 1)
         to-value    (fn [byte-seq]
-                      {:valid? true
-                       :value (byte-seq->buffer byte-seq)})]
+                      (with-meta
+                        (from-octet-seq (:byte-width x) byte-seq)
+                        {:valid? true}))]
     (case overflow
       :modulo
         (to-value sum)
       :saturating
         (if overflowed?
-          (to-value (take (.-length (:value x)) (repeat 255)))
+          (to-value (repeat (:byte-width x) 255))
           (to-value sum))
       :widening
         (if overflowed?
-          (let [operand-width (.-length (:value x))
+          (let [operand-width (:byte-width x)
                 new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
             (to-value new-bytes))
           (to-value sum))
@@ -43,16 +46,16 @@
 ;   {:pre [(not (or (:scalar x) (:scalar y)))
 ;          (.-length (:
 
-(defn addf [belt a b]
-  (let [lhs (belt-nth belt a)
-        rhs (belt-nth belt b)]
-    (cond
-      (or (nar? lhs) (nar? rhs))
-        [{:scalar? true :valid? false :value -1}]
-      (or (none? lhs) (none? rhs))
-        [{:scalar? true :valid? false :value 0}]
-      :else
-        [{:scalar? true :valid? true :value (+ (:value lhs) (:value rhs))}])))
+; (defn addf [belt a b]
+;   (let [lhs (belt-nth belt a)
+;         rhs (belt-nth belt b)]
+;     (cond
+;       (or (nar? lhs) (nar? rhs))
+;         [{:scalar? true :valid? false :value -1}]
+;       (or (none? lhs) (none? rhs))
+;         [{:scalar? true :valid? false :value 0}]
+;       :else
+;         [{:scalar? true :valid? true :value (+ (:value lhs) (:value rhs))}])))
 
 ;; (def-core-op add
 ;;   {:domains [:unsigned-integer :signed-integer :pointer
@@ -72,7 +75,3 @@
 ;;     [rounding exu1 exu2] '())
 ;;   (addd
 ;;     [rounding exu1 exu2] '()))
-
-;; (defonce conn
-;;   (repl/connect "http://localhost:9000/repl"))
-
