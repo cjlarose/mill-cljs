@@ -2,10 +2,12 @@
 
 (defn slice
   "Makes a new, zeroed-out slice of the given byte-width and length"
-  [length byte-width]
-  {:byte-width byte-width
-   :buffer (doto (js/Buffer. (* length byte-width))
-             (.fill 0))})
+  ([length byte-width]
+   (slice length byte-width 0))
+  ([length byte-width fill-value]
+   {:byte-width byte-width
+    :buffer (doto (js/Buffer. (* length byte-width))
+              (.fill fill-value))}))
 
 (defn signed-scalar
   "Produces a scalar of width 4 for the given integer"
