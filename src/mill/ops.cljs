@@ -7,7 +7,13 @@
     (.-length this))
   cljs.core/ISeqable
   (-seq
-    [this] (map #(aget this %) (range (.-length this)))))
+    [this] (map #(aget this %) (range (.-length this))))
+  cljs.core/IIndexed
+  (-nth
+    ([this i] (aget this i))
+    ([this i default] (if-let [octet (aget this i)]
+                        octet
+                        default))))
 
 ; (defn add-vector-support
 ;   "Adds vector support to a given operation"
