@@ -31,6 +31,11 @@
                                      (js/Buffer. 4)
                                      (.writeInt32BE x 0))}) xs)})
 
+(defn split-slice
+  [{:keys [byte-width elements]}]
+  (let [halves (split-at (/ (count elements) 2) elements)]
+    (mapv (fn [v] {:byte-width byte-width :elements v}) halves)))
+
 ; (defn from-octet-seq [byte-width octet-seq]
 ;   {:byte-width byte-width
 ;    :buffer (js/Buffer. (clj->js octet-seq))})
