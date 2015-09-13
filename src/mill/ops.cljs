@@ -50,9 +50,14 @@
         el-add (fn [[a b]]
                  (addu-buffers (:buffer a) (:buffer b)))
         results (map el-add element-pairs)]
-    (case overflow
-      :modulo {:byte-width (:byte-width x)
-               :elements (map (fn [[sum _]] {:valid? true :buffer (->buffer sum)}) results)})))
+    (if (#{:modulo :saturating :excepting} overflow)
+      (let [result-handler (fn [[sum carry]]
+                             (case overflow
+                               :modulo {:valid? true :buffer (->buffer sum)}
+                               :saturating {:valid? true
+                                            :buffer (->buffer (repeat (:byte-width x) 255))}))]
+        {:byte-width (:byte-width x)
+         :elements   (map result-handler results)}))))
 
   ; (let [overflowed? (= carry 1)
   ;       to-value    (fn [byte-seq]
