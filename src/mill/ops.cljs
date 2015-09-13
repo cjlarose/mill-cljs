@@ -1,5 +1,5 @@
 (ns mill.ops
-  (:require [mill.slice :refer [scalar?]]
+  (:require [mill.slice :refer [scalar? split-slice]]
             [mill.nar :refer [nar]]
             [mill.buffer :refer [addu-buffers ->buffer widen-buffer]]))
 
@@ -29,7 +29,9 @@
 (defn addu
   "Unsigned integer addition."
   ;; TODO: Figure out what happens if you try to perform a widening add with
-  ;; the largest possible width operands
+  ;;       the largest possible width scalar operands
+  ;; TODO: If an adduwv op causes only one of the result vectors to widen
+  ;;       Are both results supposed to widen?
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
@@ -37,8 +39,8 @@
         el-add (fn [[a b]]
                  (addu-buffers (:buffer a) (:buffer b)))
         results (map el-add element-pairs)
-        wide-el (fn [sum]
-                  (let [new-bytes (apply conj (cons 1 sum) (repeat (dec (:byte-width x)) 0))]
+        wide-el (fn [sum carry]
+                  (let [new-bytes (apply conj (cons carry sum) (repeat (dec (:byte-width x)) 0))]
                     {:valid? true :buffer (->buffer new-bytes)}))]
     (if (#{:modulo :saturating :excepting} overflow)
       (let [f (fn [[sum carry]]
@@ -61,36 +63,15 @@
              :elements   [{:valid? true
                             :buffer (->buffer sum)}]}
             {:byte-width (* 2 (:byte-width x))
-             :elements   [(wide-el sum)]}))
-        [{} {}]))))
-
-  ; (let [overflowed? (= carry 1)
-  ;       to-value    (fn [byte-seq]
-  ;                     {:valid? true
-  ;                      :buffer (js/Buffer. (clj->js byte-seq))})]
-  ;   (case overflow
-  ;     :modulo
-  ;       (to-value sum)
-  ;     :saturating
-  ;       (if overflowed?
-  ;         (to-value (repeat (:byte-width x) 255))
-  ;         (to-value sum))
-  ;     :widening
-  ;       (if overflowed?
-  ;         (let [operand-width (:byte-width x)
-  ;               new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
-  ;           (to-value new-bytes))
-  ;         (to-value sum))
-  ;     :excepting
-  ;       (if overflowed?
-  ;         {:valid? false :buffer (js/Buffer. #js [-1])} ; nar
-  ;         (to-value sum)))))
-
-; (defn adduv
-;   "Unsigned integer vector pairwise addition"
-;   [overflow x y]
-;   {:pre [(not (or (:scalar x) (:scalar y)))
-;          (.-length (:
+             :elements   [(wide-el sum 0)]}))
+        (let [overflowed? (some (fn [[_ carry]] (not= carry 0)) results)]
+          (if overflowed?
+            (split-slice
+              {:byte-width (* 2 (:byte-width x))
+               :elements   (map (fn [[sum carry]] (wide-el sum carry)) results)})
+            (split-slice
+              {:byte-width (:byte-width x)
+               :elements   (map (fn [[sum _]] {:valid true :buffer (->buffer sum)}) results)})))))))
 
 ; (defn addf [belt a b]
 ;   (let [lhs (belt-nth belt a)
