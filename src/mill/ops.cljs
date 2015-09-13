@@ -45,14 +45,14 @@
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
-  (let [element-pairs (map vector (:elements x) (:elements y))
+  (let [->buffer (fn [octet-seq] (js/Buffer. (clj->js octet-seq)))
+        element-pairs (map vector (:elements x) (:elements y))
         el-add (fn [[a b]]
-                 (let [[sum _] (addu-buffers (:buffer a) (:buffer b))]
-                   {:valid? true
-                    :buffer sum}))]
+                 (addu-buffers (:buffer a) (:buffer b)))
+        results (map el-add element-pairs)]
     (case overflow
       :modulo {:byte-width (:byte-width x)
-               :elements (map el-add element-pairs)})))
+               :elements (map (fn [[sum _]] {:valid? true :buffer (->buffer sum)}) results)})))
 
   ; (let [overflowed? (= carry 1)
   ;       to-value    (fn [byte-seq]
