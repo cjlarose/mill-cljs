@@ -34,10 +34,9 @@
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
-  (let [element-pairs (map vector (:elements x) (:elements y))
-        el-add (fn [[a b]]
+  (let [el-add (fn [a b]
                  (addu-buffers (:buffer a) (:buffer b)))
-        results (map el-add element-pairs)
+        results (map el-add (:elements x) (:elements  y))
         wide-el (fn [sum carry]
                   (let [new-bytes (apply conj (cons carry sum) (repeat (dec (:byte-width x)) 0))]
                     {:valid? true :buffer (->buffer new-bytes)}))]
