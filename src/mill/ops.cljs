@@ -38,10 +38,8 @@
 
 (defn addu
   "Unsigned integer addition."
-  ;; TODO: Figure out if add is supposed to widen operands or only accept
-  ;; equal-width operands. For now, assume same width
   ;; TODO: Figure out what happens if you try to perform a widening add with
-  ;; the largest possible width operands?
+  ;; the largest possible width operands
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
