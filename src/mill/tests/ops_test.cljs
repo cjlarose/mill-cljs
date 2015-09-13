@@ -6,22 +6,30 @@
 
 (deftest test-addu
   (testing "without overflow"
-    (testing "with modulo, saturating, and excepting overflow behavior"
-      (testing "with scalars"
-        (doseq [overflow [:modulo :saturating :excepting]]
-          (let [sum    (ops/addu overflow (slice/int-slice 65) (slice/int-slice 42))
-                {:keys [byte-width elements]} sum]
-            (is (= 4 byte-width))
-            (is (= 1 (count elements)))
-            (is-element {:valid? true :buffer [0 0 0 107]} (first elements)))))
-      (testing "with vectors"
+    (testing "with scalars"
+      (doseq [overflow [:modulo :saturating :excepting :widening]]
+        (let [sum    (ops/addu overflow (slice/int-slice 65) (slice/int-slice 42))
+              {:keys [byte-width elements]} sum]
+          (is (= 4 byte-width))
+          (is (= 1 (count elements)))
+          (is-element {:valid? true :buffer [0 0 0 107]} (first elements)))))
+    (testing "with vectors"
+      (testing "with modulo, saturating, and excepting overflow behavior"
         (doseq [overflow [:modulo :saturating :excepting]]
           (let [sum    (ops/addu overflow (slice/int-slice 65 97) (slice/int-slice 42 21))
                 {:keys [byte-width elements]} sum]
             (is (= 4 byte-width))
             (is (= 2 (count elements)))
             (is-element {:valid? true :buffer [0 0 0 107]} (first elements))
-            (is-element {:valid? true :buffer [0 0 0 118]} (second elements)))))))
+            (is-element {:valid? true :buffer [0 0 0 118]} (second elements)))))
+      (testing "with widening overflow behavior"
+        (let [[l r] (ops/addu :widening (slice/int-slice 65 97) (slice/int-slice 42 21))]
+          (is (= 4 (:byte-width l)))
+          (is (= 4 (:byte-width r)))
+          (is (= 1 (count (:elements l))))
+          (is (= 1 (count (:elements r))))
+          (is-element {:valid? true :buffer [0 0 0 107]} (first (:elements l)))
+          (is-element {:valid? true :buffer [0 0 0 118]} (first (:elements r)))))))
   (testing "with overflow"
     (testing "modulo"
       (testing "with scalars"
