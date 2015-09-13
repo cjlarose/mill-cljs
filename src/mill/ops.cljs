@@ -36,6 +36,15 @@
       ['() 0]
       pairs)))
 
+(defn ->buffer
+  "Creates a Buffer from and octet seq"
+  [octet-seq]
+  (js/Buffer. (clj->js octet-seq)))
+
+(defn nar-element [width]
+  {:valid? false
+   :buffer (->buffer (take width (cycle [222 173 190 239])))})
+
 (defn addu
   "Unsigned integer addition."
   ;; TODO: Figure out what happens if you try to perform a widening add with
@@ -43,8 +52,7 @@
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
-  (let [->buffer (fn [octet-seq] (js/Buffer. (clj->js octet-seq)))
-        element-pairs (map vector (:elements x) (:elements y))
+  (let [element-pairs (map vector (:elements x) (:elements y))
         el-add (fn [[a b]]
                  (addu-buffers (:buffer a) (:buffer b)))
         results (map el-add element-pairs)]
@@ -58,8 +66,7 @@
                       {:valid? true
                        :buffer (->buffer (repeat (:byte-width x) 255))}
                     :excepting
-                      {:valid? false
-                       :buffer (->buffer (repeat (:byte-width x) 255))})))]
+                      (nar-element (:byte-width x)))))]
         {:byte-width (:byte-width x)
          :elements   (map f results)}))))
 
