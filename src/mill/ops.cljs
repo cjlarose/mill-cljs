@@ -58,7 +58,13 @@
                     {:valid? true
                      :buffer (->buffer (if (= carry 0)
                                          sum
-                                         (repeat (:byte-width x) 255)))}))]
+                                         (repeat (:byte-width x) 255)))}
+                  :excepting
+                    (if (= carry 0)
+                      {:valid? true
+                       :buffer (->buffer sum)}
+                      {:valid? false
+                       :buffer (->buffer (repeat (:byte-width x) 255))})))]
         {:byte-width (:byte-width x)
          :elements   (map f results)}))))
 
