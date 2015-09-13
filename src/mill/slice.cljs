@@ -8,12 +8,12 @@
 ;    {:byte-width byte-width
 ;     :buffer (doto (js/Buffer. (* length byte-width))
 ;               (.fill fill-value))}))
-; 
-; (defn scalar?
-;   "Returns whether the slice is a scalar. Scalars in Mill are just
-;   vectors of length 1"
-;   [{:keys [byte-width buffer]}]
-;   (= byte-width (.-length buffer)))
+
+(defn scalar?
+  "Returns whether the slice is a scalar. Scalars in Mill are just
+  vectors of length 1"
+  [{:keys [elements]}]
+  (= (count elements) 1))
 
 (defn- valid-int? [x]
   (and

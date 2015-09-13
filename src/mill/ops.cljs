@@ -1,5 +1,6 @@
 (ns mill.ops
-  (:require [mill.nar :refer [nar]]))
+  (:require [mill.slice :refer [scalar?]]
+            [mill.nar :refer [nar]]))
 
 (extend-type js/Buffer
   cljs.core/ICounted
@@ -17,7 +18,23 @@
 
 ; (defn add-vector-support
 ;   "Adds vector support to a given operation"
-;   [f]
+;   [op]
+;   (fn [overflow x y]
+;     (if (and (scalar? x) (scalar? y))
+;       (let [result (op overflow (first (:elements x)) (first (:elements y))
+
+(defn- addu-buffers
+  "Adds two buffers. Returns the sum as an octet seq along with the carry
+  amount"
+  [x y]
+  (let [rev-bytes (comp reverse seq)
+        pairs     (map vector (rev-bytes x) (rev-bytes y))]
+    (reduce
+      (fn [[sum carry] [a b]]
+        (let [byte-sum (+ a b carry)]
+          [(cons (mod byte-sum 256) sum) (quot byte-sum 256)]))
+      ['() 0]
+      pairs)))
 
 (defn addu
   "Unsigned integer addition."
@@ -26,35 +43,38 @@
   ;; TODO: Figure out what happens if you try to perform a widening add with
   ;; the largest possible width operands?
   [overflow x y]
-  (let [rev-bytes   (comp reverse seq :buffer)
-        pairs       (map vector (rev-bytes x) (rev-bytes y))
-        [sum carry] (reduce
-                      (fn [[sum carry] [a b]]
-                        (let [byte-sum (+ a b carry)]
-                          [(cons (mod byte-sum 256) sum) (quot byte-sum 256)]))
-                      ['() 0]
-                      pairs)
-        overflowed? (= carry 1)
-        to-value    (fn [byte-seq]
-                      {:valid? true
-                       :buffer (js/Buffer. (clj->js byte-seq))})]
+  {:pre [(= (:byte-width x) (:byte-width y))
+         (= (count (:elements x)) (count (:elements y)))]}
+  (let [element-pairs (map vector (:elements x) (:elements y))
+        el-add (fn [[a b]]
+                 (let [[sum _] (addu-buffers (:buffer a) (:buffer b))]
+                   {:valid? true
+                    :buffer sum}))]
     (case overflow
-      :modulo
-        (to-value sum)
-      :saturating
-        (if overflowed?
-          (to-value (repeat (.-length (:buffer x)) 255))
-          (to-value sum))
-      :widening
-        (if overflowed?
-          (let [operand-width (.-length (:buffer x))
-                new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
-            (to-value new-bytes))
-          (to-value sum))
-      :excepting
-        (if overflowed?
-          {:valid? false :buffer (js/Buffer. #js [-1])} ; nar
-          (to-value sum)))))
+      :modulo {:byte-width (:byte-width x)
+               :elements (map el-add element-pairs)})))
+
+  ; (let [overflowed? (= carry 1)
+  ;       to-value    (fn [byte-seq]
+  ;                     {:valid? true
+  ;                      :buffer (js/Buffer. (clj->js byte-seq))})]
+  ;   (case overflow
+  ;     :modulo
+  ;       (to-value sum)
+  ;     :saturating
+  ;       (if overflowed?
+  ;         (to-value (repeat (:byte-width x) 255))
+  ;         (to-value sum))
+  ;     :widening
+  ;       (if overflowed?
+  ;         (let [operand-width (:byte-width x)
+  ;               new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
+  ;           (to-value new-bytes))
+  ;         (to-value sum))
+  ;     :excepting
+  ;       (if overflowed?
+  ;         {:valid? false :buffer (js/Buffer. #js [-1])} ; nar
+  ;         (to-value sum)))))
 
 ; (defn adduv
 ;   "Unsigned integer vector pairwise addition"
