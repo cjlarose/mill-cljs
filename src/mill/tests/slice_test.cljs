@@ -1,10 +1,7 @@
 (ns mill.tests.slice-test
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
+            [mill.tests.util :refer [is-element]]
             [mill.slice :as slice]))
-
-(defn is-element [expected actual]
-  (is (= (:valid? expected) (:valid? actual)))
-  (is (.equals (js/Buffer. (clj->js (:buffer expected))) (:buffer actual))))
 
 (deftest test-int-slice
   (testing "with single argument"
