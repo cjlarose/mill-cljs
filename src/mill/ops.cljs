@@ -62,7 +62,7 @@
              :elements   [{:valid? true
                             :buffer (->buffer sum)}]}
             {:byte-width (* 2 (:byte-width x))
-             :elements   [(wide-el sum 0)]}))
+             :elements   [(wide-el sum 1)]}))
         (let [overflowed? (some (fn [[_ carry]] (not= carry 0)) results)]
           (if overflowed?
             (split-slice
