@@ -16,7 +16,7 @@
   (fmap [_ _]
     (None.))
   Applicative
-  (pure [_]
+  (pure [_ _]
     (None.))
   (fapply [_ _]
     (None.)))
@@ -29,8 +29,8 @@
   (fmap [_ f]
     (NotNone. (f v)))
   Applicative
-  (pure [x]
-    (NotNone. x))
+  (pure [_ y]
+    (NotNone. y))
   (fapply [_ a]
     (fmap a v)))
 

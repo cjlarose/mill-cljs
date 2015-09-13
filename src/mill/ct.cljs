@@ -7,5 +7,5 @@
   (fmap [x f]))
 
 (defprotocol Applicative
-  (pure [x])
+  (pure [x y])
   (fapply [f a]))
