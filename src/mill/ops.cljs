@@ -50,19 +50,14 @@
         results (map el-add element-pairs)]
     (if (#{:modulo :saturating :excepting} overflow)
       (let [f (fn [[sum carry]]
-                (case overflow
-                  :modulo
-                    {:valid? true
-                     :buffer (->buffer sum)}
-                  :saturating
-                    {:valid? true
-                     :buffer (->buffer (if (= carry 0)
-                                         sum
-                                         (repeat (:byte-width x) 255)))}
-                  :excepting
-                    (if (= carry 0)
+                (if (or (= overflow :modulo) (= carry 0))
+                  {:valid? true
+                   :buffer (->buffer sum)}
+                  (case overflow
+                    :saturating
                       {:valid? true
-                       :buffer (->buffer sum)}
+                       :buffer (->buffer (repeat (:byte-width x) 255))}
+                    :excepting
                       {:valid? false
                        :buffer (->buffer (repeat (:byte-width x) 255))})))]
         {:byte-width (:byte-width x)
