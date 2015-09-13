@@ -19,12 +19,11 @@
   For a vector argument, produces two result vectors"
   [s]
   (let [new-elements (map #(update % :buffer widen-buffer) (:elements s))
-        new-byte-width (* 2 (:byte-width s))]
+        new-byte-width (* 2 (:byte-width s))
+        result {:byte-width new-byte-width :elements new-elements}]
     (if (scalar? s)
-      {:byte-width new-byte-width
-       :elements new-elements}
-      (let [halves (split-at (/ (count new-elements) 2) new-elements)]
-        (mapv (fn [v] {:byte-width new-byte-width :elements v}) halves)))))
+      result
+      (split-slice result))))
 
 (defn addu
   "Unsigned integer addition."
