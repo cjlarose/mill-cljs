@@ -72,6 +72,21 @@
           (is (= 4 byte-width))
           (is (= 2 (count elements)))
           (is-element-nar (first elements))
-          (is-element {:valid? true :buffer [0 0 0 118]} (second elements)))))))
+          (is-element {:valid? true :buffer [0 0 0 118]} (second elements)))))
+    (testing "widening"
+      (testing "with scalars"
+        (let [sum    (ops/addu :widening (slice/int-slice -1) (slice/int-slice 2))
+              {:keys [byte-width elements]} sum]
+          (is (= 8 byte-width))
+          (is (= 1 (count elements)))
+          (is-element {:valid? true :buffer [0 0 0 1 0 0 0 1]} (first elements))))
+      (testing "with vectors"
+        (let [[l r] (ops/addu :widening (slice/int-slice 65 97) (slice/int-slice -1 21))]
+          (is (= 8 (:byte-width l)))
+          (is (= 8 (:byte-width r)))
+          (is (= 1 (count (:elements l))))
+          (is (= 1 (count (:elements r))))
+          (is-element {:valid? true :buffer [0 0 0 1 0 0 0 64]} (first (:elements l)))
+          (is-element {:valid? true :buffer [0 0 0 0 0 0 0 118]} (first (:elements r))))))))
 
 (run-tests)
