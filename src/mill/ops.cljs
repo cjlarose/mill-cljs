@@ -45,6 +45,27 @@
   {:valid? false
    :buffer (->buffer (take width (cycle [222 173 190 239])))})
 
+(defn widen-buffer
+  "Returns a buffer of double width, zero-extending to the left"
+  [buffer]
+  (let [old-len (.-length buffer)
+        new-buffer (js/Buffer. (* 2 old-len))]
+    (.fill new-buffer 0)
+    (.copy buffer new-buffer old-len)
+    new-buffer))
+
+(defn widenu
+  "Doubles the width of a unsigned integer scalar, zero-extending to the left.
+  For a vector argument, produces two result vectors"
+  [s]
+  (let [new-elements (map #(update % :buffer widen-buffer) (:elements s))
+        new-byte-width (* 2 (:byte-width s))]
+    (if (scalar? s)
+      {:byte-width new-byte-width
+       :elements new-elements}
+      (let [halves (split-at (/ (count new-elements) 2) new-elements)]
+        (vec (map (fn [v] {:byte-width new-byte-width :elements v}) halves))))))
+
 (defn addu
   "Unsigned integer addition."
   ;; TODO: Figure out what happens if you try to perform a widening add with

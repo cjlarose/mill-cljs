@@ -46,18 +46,3 @@
 ;   (map
 ;     (fn [offset] (.slice buffer offset (+ offset byte-width)))
 ;     (range 0 (.-length buffer) byte-width)))
-
-(defn widen
-  "Doubles the width of a slice, zero-extending each element to the left"
-  [s]
-  (let [widen-buffer (fn [buffer]
-                       (let [old-len (.-length buffer)
-                             new-buffer (js/Buffer. (* 2 old-len))]
-                         (.fill new-buffer 0)
-                         (.copy buffer new-buffer old-len)
-                         new-buffer))
-        widen-el (fn [el]
-                   (update el :buffer widen-buffer))]
-    (-> s
-        (update :byte-width * 2)
-        (update :elements (partial map widen-el)))))
