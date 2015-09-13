@@ -70,7 +70,7 @@
                :elements   (map (fn [[sum carry]] (wide-el sum carry)) results)})
             (split-slice
               {:byte-width (:byte-width x)
-               :elements   (map (fn [[sum _]] {:valid true :buffer (->buffer sum)}) results)})))))))
+               :elements   (map (fn [[sum _]] {:valid? true :buffer (->buffer sum)}) results)})))))))
 
 ; (defn addf [belt a b]
 ;   (let [lhs (belt-nth belt a)
