@@ -8,28 +8,19 @@
           :elements [{:valid? false
                       :buffer (js/Buffer. [-1])}]})
 
-(deftype NaR []
+(deftype MaybeNaR [valid? value]
   Object
   (toString [_]
-    "NaR")
+    (str (if valid? "Result" "NaR") " " value))
   Functor
-  (fmap [_ _]
-    (NaR.))
-  Applicative
-  (pure [_ _]
-    (NaR.))
-  (fapply [_ _]
-    (NaR.)))
-
-(deftype NotNaR [v]
-  Object
-  (toString [_]
-    (str "NotNaR " v))
-  Functor
-  (fmap [_ f]
-    (NotNaR. (f v)))
+  (fmap [this f]
+    (if valid?
+      (MaybeNaR. true (f value))
+      this))
   Applicative
   (pure [_ y]
-    (NotNaR. y))
-  (fapply [_ a]
-    (fmap a v)))
+    (MaybeNaR. true y))
+  (fapply [this a]
+    (if valid?
+      (fmap a value)
+      this)))
