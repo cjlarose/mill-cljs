@@ -8,38 +8,17 @@
           :elements [{:valid? false
                       :buffer (js/Buffer. [-1])}]})
 
-(deftype None []
-  Object
-  (toString [_]
-    "None")
-  Functor
-  (fmap [_ _]
-    (None.))
-  Applicative
-  (pure [_ _]
-    (None.))
-  (fapply [_ _]
-    (None.)))
-
-(deftype NotNone [v]
-  Object
-  (toString [_]
-    (str "NotNone " v))
-  Functor
-  (fmap [_ f]
-    (NotNone. (f v)))
-  Applicative
-  (pure [_ y]
-    (NotNone. y))
-  (fapply [_ a]
-    (fmap a v)))
-
 (deftype NaR []
   Object
   (toString [_]
     "NaR")
   Functor
   (fmap [_ _]
+    (NaR.))
+  Applicative
+  (pure [_ _]
+    (NaR.))
+  (fapply [_ _]
     (NaR.)))
 
 (deftype NotNaR [v]
@@ -48,4 +27,9 @@
     (str "NotNaR " v))
   Functor
   (fmap [_ f]
-    (NotNaR. (f v))))
+    (NotNaR. (f v)))
+  Applicative
+  (pure [_ y]
+    (NotNaR. y))
+  (fapply [_ a]
+    (fmap a v)))
