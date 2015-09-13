@@ -4,5 +4,8 @@
 ;; but fluokitten isn't yet ported to cljs :(
 
 (defprotocol Functor
-  "Something that can be mapped over"
   (fmap [x f]))
+
+(defprotocol Applicative
+  (pure [x])
+  (fapply [f a]))
