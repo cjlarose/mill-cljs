@@ -1,5 +1,8 @@
-(ns mill.nar
-  (:require [mill.slice :refer [from-octet-seq]]))
+(ns mill.nar)
 
-(def none (with-meta (from-octet-seq 1 [0]) {:valid? false}))
-(def nar (with-meta (from-octet-seq 1 [-1]) {:valid? false}))
+(def none {:byte-width 1
+           :elements [{:valid? false
+                       :buffer (js/Buffer. [0])}]})
+(def nar {:byte-width 1
+          :elements [{:valid? false
+                      :buffer (js/Buffer. [-1])}]})
