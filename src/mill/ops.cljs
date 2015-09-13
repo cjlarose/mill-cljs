@@ -1,6 +1,17 @@
 (ns mill.ops
-  (:require [mill.slice :refer [slice octet-seq from-octet-seq]]
-            [mill.nar :refer [nar]]))
+  (:require [mill.nar :refer [nar]]))
+
+(extend-type js/Buffer
+  cljs.core/ICounted
+  (-count [this]
+    (.-length this))
+  cljs.core/ISeqable
+  (-seq
+    [this] (map #(aget this %) (range (.-length this)))))
+
+; (defn add-vector-support
+;   "Adds vector support to a given operation"
+;   [f]
 
 (defn addu
   "Unsigned integer addition."
@@ -9,7 +20,7 @@
   ;; TODO: Figure out what happens if you try to perform a widening add with
   ;; the largest possible width operands?
   [overflow x y]
-  (let [rev-bytes   (comp reverse octet-seq)
+  (let [rev-bytes   (comp reverse seq :buffer)
         pairs       (map vector (rev-bytes x) (rev-bytes y))
         [sum carry] (reduce
                       (fn [[sum carry] [a b]]
@@ -19,25 +30,24 @@
                       pairs)
         overflowed? (= carry 1)
         to-value    (fn [byte-seq]
-                      (with-meta
-                        (from-octet-seq (:byte-width x) byte-seq)
-                        {:valid? true}))]
+                      {:valid? true
+                       :buffer (js/Buffer. (clj->js byte-seq))})]
     (case overflow
       :modulo
         (to-value sum)
       :saturating
         (if overflowed?
-          (to-value (repeat (:byte-width x) 255))
+          (to-value (repeat (.-length (:buffer x)) 255))
           (to-value sum))
       :widening
         (if overflowed?
-          (let [operand-width (:byte-width x)
+          (let [operand-width (.-length (:buffer x))
                 new-bytes (apply conj (cons 1 sum) (repeat (dec operand-width) 0))]
             (to-value new-bytes))
           (to-value sum))
       :excepting
         (if overflowed?
-          nar
+          {:valid? false :buffer (js/Buffer. #js [-1])} ; nar
           (to-value sum)))))
 
 ; (defn adduv
