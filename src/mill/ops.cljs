@@ -36,7 +36,10 @@
   (let [element-pairs (map vector (:elements x) (:elements y))
         el-add (fn [[a b]]
                  (addu-buffers (:buffer a) (:buffer b)))
-        results (map el-add element-pairs)]
+        results (map el-add element-pairs)
+        wide-el (fn [sum]
+                  (let [new-bytes (apply conj (cons 1 sum) (repeat (dec (:byte-width x)) 0))]
+                    {:valid? true :buffer (->buffer new-bytes)}))]
     (if (#{:modulo :saturating :excepting} overflow)
       (let [f (fn [[sum carry]]
                 (if (or (= overflow :modulo) (= carry 0))
@@ -49,7 +52,17 @@
                     :excepting
                     (nar-element (:byte-width x)))))]
         {:byte-width (:byte-width x)
-         :elements   (map f results)}))))
+         :elements   (map f results)})
+      ; (= overflow :widening)
+      (if (scalar? x)
+        (let [[sum carry] (first results)]
+          (if (= carry 0)
+            {:byte-width (:byte-width x)
+             :elements   [{:valid? true
+                            :buffer (->buffer sum)}]}
+            {:byte-width (* 2 (:byte-width x))
+             :elements   [(wide-el sum)]}))
+        [{} {}]))))
 
   ; (let [overflowed? (= carry 1)
   ;       to-value    (fn [byte-seq]
