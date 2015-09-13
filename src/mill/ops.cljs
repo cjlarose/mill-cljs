@@ -64,7 +64,7 @@
       {:byte-width new-byte-width
        :elements new-elements}
       (let [halves (split-at (/ (count new-elements) 2) new-elements)]
-        (vec (map (fn [v] {:byte-width new-byte-width :elements v}) halves))))))
+        (mapv (fn [v] {:byte-width new-byte-width :elements v}) halves)))))
 
 (defn addu
   "Unsigned integer addition."
