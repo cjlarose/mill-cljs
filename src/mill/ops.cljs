@@ -63,10 +63,10 @@
                    :buffer (->buffer sum)}
                   (case overflow
                     :saturating
-                      {:valid? true
-                       :buffer (->buffer (repeat (:byte-width x) 255))}
+                    {:valid? true
+                     :buffer (->buffer (repeat (:byte-width x) 255))}
                     :excepting
-                      (nar-element (:byte-width x)))))]
+                    (nar-element (:byte-width x)))))]
         {:byte-width (:byte-width x)
          :elements   (map f results)}))))
 
