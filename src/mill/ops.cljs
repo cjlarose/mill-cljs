@@ -2,6 +2,7 @@
   (:require [mill.slice :refer [scalar? split-slice]]
             [mill.nar :refer [nar result]]
             [mill.unsigned-math :as u]
+            [mill.ct :refer [bind]]
             [mill.buffer :refer [addu-buffers ->buffer widen-buffer]]))
 
 ; (defn add-vector-support
@@ -36,9 +37,11 @@
     (cond
       (#{:modulo :saturating} overflow)
         ;; cool ct case
-        (let [f (if (= overflow :modulo) u/addu u/addus)]
+        (let [f (if (= overflow :modulo) u/addu u/addus)
+              g (fn [a b]
+                  (bind a (bind b #(partial f %))))]
           {:byte-width (:byte-width x)
-           :elements   (map f (:elements x) (:elements y))})
+           :elements   (map g (:elements x) (:elements y))})
       (= overflow :excepting)
         ;; haven't figured this one out yet
         (let [f (fn [[sum carry]]
