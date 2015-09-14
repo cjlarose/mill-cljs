@@ -6,5 +6,4 @@
   (is (= (:buffer expected) (seq (:value actual)))))
 
 (defn is-element-nar [actual]
-  (is (= false (:valid? actual)))
-  (is (not= (reduce bit-or 0 (seq (:buffer actual))) 0)))
+  (is (= false (:valid? actual))))
