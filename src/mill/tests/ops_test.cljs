@@ -5,6 +5,7 @@
             [mill.ops :as ops]))
 
 (deftest test-addu
+  ;; TODO: Make sure NaRs are carried though execution
   (testing "without overflow"
     (testing "with scalars"
       (doseq [overflow [:modulo :saturating :excepting :widening]]

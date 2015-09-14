@@ -25,11 +25,11 @@
 
 (defn addu
   "Unsigned integer addition."
-  ;; TODO: Figure out what happens if you try to perform a widening add with
-  ;;       the largest possible width scalar operands
-  ;; TODO: If an adduwv op causes only one of the result vectors to widen
-  ;;       Are both results supposed to widen?
-  ;; TODO: Make sure NaRs are carried though execution
+  ;; TODO: Figure out what happens if you try to perform a
+  ;; widening add with the largest possible width scalar operands.
+  ;; Possibly Not Widenable NaR is returned
+  ;; TODO: If an adduwv op causes only one of the result vectors
+  ;; to widen.  Are both results supposed to widen?
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
