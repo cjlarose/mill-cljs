@@ -38,7 +38,7 @@
                :saturating u/addus
                :excepting u/addux}
             g (fn [a b]
-                (bind a (bind b #(partial (f overflow) %))))]
+                (bind a (fn [i] (bind b (fn [j] ((f overflow) i j))))))]
         {:byte-width (:byte-width x)
          :elements   (map g (:elements x) (:elements y))})
       ; (= overflow :widening)
