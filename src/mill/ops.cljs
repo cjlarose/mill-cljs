@@ -33,36 +33,36 @@
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
-    (if (#{:modulo :saturating :excepting} overflow)
-      (let [f {:modulo u/addu
-               :saturating u/addus
-               :excepting u/addux}
-            g (fn [a b]
-                (bind a (fn [va] (bind b (fn [vb] ((f overflow) va vb))))))]
-        {:byte-width (:byte-width x)
-         :elements   (map g (:elements x) (:elements y))})
-      ; (= overflow :widening)
-      (let [el-add (fn [a b]
-                     (addu-buffers (:value a) (:value b)))
-            results (map el-add (:elements x) (:elements y))
-            wide-el (fn [sum carry]
-                      (let [new-bytes (apply conj (cons carry sum) (repeat (dec (:byte-width x)) 0))]
-                        (result (->buffer new-bytes))))]
-        (if (scalar? x)
-          (let [[sum carry] (first results)]
-            (if (= carry 0)
-              {:byte-width (:byte-width x)
-               :elements   [(result (->buffer sum))]}
+  (if (#{:modulo :saturating :excepting} overflow)
+    (let [f {:modulo u/addu
+             :saturating u/addus
+             :excepting u/addux}
+          g (fn [a b]
+              (bind a (fn [va] (bind b (fn [vb] ((f overflow) va vb))))))]
+      {:byte-width (:byte-width x)
+       :elements   (map g (:elements x) (:elements y))})
+    ; (= overflow :widening)
+    (let [el-add (fn [a b]
+                   (addu-buffers (:value a) (:value b)))
+          results (map el-add (:elements x) (:elements y))
+          wide-el (fn [sum carry]
+                    (let [new-bytes (apply conj (cons carry sum) (repeat (dec (:byte-width x)) 0))]
+                      (result (->buffer new-bytes))))]
+      (if (scalar? x)
+        (let [[sum carry] (first results)]
+          (if (= carry 0)
+            {:byte-width (:byte-width x)
+             :elements   [(result (->buffer sum))]}
+            {:byte-width (* 2 (:byte-width x))
+             :elements   [(wide-el sum 1)]}))
+        (let [overflowed? (some (fn [[_ carry]] (not= carry 0)) results)]
+          (if overflowed?
+            (split-slice
               {:byte-width (* 2 (:byte-width x))
-               :elements   [(wide-el sum 1)]}))
-          (let [overflowed? (some (fn [[_ carry]] (not= carry 0)) results)]
-            (if overflowed?
-              (split-slice
-                {:byte-width (* 2 (:byte-width x))
-                 :elements   (map (fn [[sum carry]] (wide-el sum carry)) results)})
-              (split-slice
-                {:byte-width (:byte-width x)
-                 :elements   (map (fn [[sum _]] (result (->buffer sum))) results)})))))))
+               :elements   (map (fn [[sum carry]] (wide-el sum carry)) results)})
+            (split-slice
+              {:byte-width (:byte-width x)
+               :elements   (map (fn [[sum _]] (result (->buffer sum))) results)})))))))
 
 ; (defn addf [belt a b]
 ;   (let [lhs (belt-nth belt a)
