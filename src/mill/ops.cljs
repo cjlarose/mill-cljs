@@ -29,6 +29,7 @@
   ;;       the largest possible width scalar operands
   ;; TODO: If an adduwv op causes only one of the result vectors to widen
   ;;       Are both results supposed to widen?
+  ;; TODO: Make sure NaRs are carried though execution
   [overflow x y]
   {:pre [(= (:byte-width x) (:byte-width y))
          (= (count (:elements x)) (count (:elements y)))]}
