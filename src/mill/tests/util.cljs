@@ -3,7 +3,7 @@
 
 (defn is-element [expected actual]
   (is (= (:valid? expected) (:valid? actual)))
-  (is (= (:buffer expected) (seq (:buffer actual)))))
+  (is (= (:buffer expected) (seq (:value actual)))))
 
 (defn is-element-nar [actual]
   (is (= false (:valid? actual)))
