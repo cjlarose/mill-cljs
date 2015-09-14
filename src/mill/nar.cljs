@@ -24,3 +24,6 @@
     (if valid?
       (fmap a value)
       this)))
+
+(defn result [v]
+  (MaybeNaR. true v))
