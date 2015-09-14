@@ -8,10 +8,7 @@
           :elements [{:valid? false
                       :buffer (js/Buffer. [-1])}]})
 
-(deftype MaybeNaR [valid? value]
-  Object
-  (toString [_]
-    (str (if valid? "Result" "NaR") " " value))
+(defrecord MaybeNaR [valid? value]
   Functor
   (fmap [this f]
     (if valid?
