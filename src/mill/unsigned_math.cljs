@@ -1,8 +1,6 @@
 (ns mill.unsigned-math
   (:require [mill.buffer :refer [addu-buffers ->buffer]]
-            [mill.nar :refer [result]]))
-
-(def deadbeef '(222 173 190 239))
+            [mill.nar :refer [result nar]]))
 
 (defn addu [x y]
   (let [[sum _] (addu-buffers x y)]
@@ -24,5 +22,5 @@
 (defn addux [x y]
   (let [[sum carry] (addu-buffers x y)]
     (if (= carry 0)
-      (->buffer sum)
-      (->buffer (take (.-length x) (cycle deadbeef))))))
+      (result (->buffer sum))
+      (nar (.-length x)))))

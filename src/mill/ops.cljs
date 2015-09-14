@@ -35,21 +35,15 @@
   (let [el-add (fn [a b]
                  (addu-buffers (:value a) (:value b)))]
     (cond
-      (#{:modulo :saturating} overflow)
+      (#{:modulo :saturating :excepting} overflow)
         ;; cool ct case
-        (let [f (if (= overflow :modulo) u/addu u/addus)
+        (let [f {:modulo u/addu
+                 :saturating u/addus
+                 :excepting u/addux}
               g (fn [a b]
-                  (bind a (bind b #(partial f %))))]
+                  (bind a (bind b #(partial (f overflow) %))))]
           {:byte-width (:byte-width x)
            :elements   (map g (:elements x) (:elements y))})
-      (= overflow :excepting)
-        ;; haven't figured this one out yet
-        (let [f (fn [[sum carry]]
-                  (if (= carry 0)
-                    (result (->buffer sum))
-                    (nar (:byte-width x))))]
-          {:byte-width (:byte-width x)
-           :elements   (map f (map el-add (:elements x) (:elements y)))})
       :else
         ; (= overflow :widening)
         (let [results (map el-add (:elements x) (:elements y))
