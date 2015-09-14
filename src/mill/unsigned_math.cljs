@@ -2,15 +2,15 @@
   (:require [mill.buffer :refer [addu-buffers ->buffer]]
             [mill.nar :refer [result nar]]))
 
-(defn addu [x y]
-  (let [[sum _] (addu-buffers x y)]
-    (result (->buffer sum))))
-
-(defn addus [x y]
+(defn- add [if-overflow x y]
   (let [[sum carry] (addu-buffers x y)]
     (if (= carry 0)
       (result (->buffer sum))
-      (result (->buffer (repeat (.-length x) 255))))))
+      (if-overflow sum carry))))
+
+(def addu (partial add (fn [sum _] (result (->buffer sum)))))
+(def addus (partial add (fn [sum _] (result (->buffer (repeat (count sum) 255))))))
+(def addux (partial add (fn [sum _] (nar (count sum)))))
 
 (defn adduw [x y]
   (let [[sum carry] (addu-buffers x y)]
@@ -18,9 +18,3 @@
       (->buffer sum)
       (let [new-bytes (apply conj (cons carry sum) (repeat (dec (.-length x)) 0))]
         (->buffer new-bytes)))))
-
-(defn addux [x y]
-  (let [[sum carry] (addu-buffers x y)]
-    (if (= carry 0)
-      (result (->buffer sum))
-      (nar (.-length x)))))
