@@ -1,13 +1,6 @@
 (ns mill.nar
   (:require [mill.ct :refer [Functor Applicative fmap]]))
 
-(def none {:byte-width 1
-           :elements [{:valid? false
-                       :buffer (js/Buffer. [0])}]})
-(def nar {:byte-width 1
-          :elements [{:valid? false
-                      :buffer (js/Buffer. [-1])}]})
-
 (defrecord MaybeNaR [valid? value]
   Functor
   (fmap [this f]
@@ -24,3 +17,8 @@
 
 (defn result [v]
   (MaybeNaR. true v))
+
+(def deadbeef '(222 173 190 239))
+
+(defn nar [width]
+  (MaybeNaR. false (js/Buffer. (clj->js (take width (cycle deadbeef))))))
