@@ -1,4 +1,5 @@
-(ns mill.slice)
+(ns mill.slice
+  (:require [mill.nar :refer [result]]))
 
 (defn scalar?
   "Returns whether the slice is a scalar. Scalars in Mill are just
@@ -17,10 +18,7 @@
   [& xs]
   {:pre [(every? valid-int? xs)]}
   {:byte-width 4
-   :elements (map (fn [x] {:valid? true
-                           :buffer (doto
-                                     (js/Buffer. 4)
-                                     (.writeInt32BE x 0))}) xs)})
+   :elements (map #(result (doto (js/Buffer. 4) (.writeInt32BE % 0))) xs)})
 
 (defn split-slice
   [{:keys [byte-width elements]}]
