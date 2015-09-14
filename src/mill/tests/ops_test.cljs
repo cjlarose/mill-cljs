@@ -2,10 +2,23 @@
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
             [mill.tests.util :refer [is-element is-element-nar]]
             [mill.slice :as slice]
+            [mill.nar :refer [nar]]
             [mill.ops :as ops]))
 
+(def example-nar {:byte-width 4 :elements [(nar 4)]})
+
 (deftest test-addu
-  ;; TODO: Make sure NaRs are carried though execution
+  (testing "with NaR arguments" ;; TODO: enable tests for widening overflow
+    (testing "with scalars" ;; TODO: tests for vectors containing NaRs
+      (doseq [overflow [:modulo :saturating :excepting]
+              operands [[example-nar (slice/int-slice 42)]
+                        [(slice/int-slice 42) example-nar]
+                        [example-nar example-nar]]]
+        (let [sum    (apply ops/addu overflow operands)
+              {:keys [byte-width elements]} sum]
+          (is (= 4 byte-width))
+          (is (= 1 (count elements)))
+          (is-element-nar (first elements))))))
   (testing "without overflow"
     (testing "with scalars"
       (doseq [overflow [:modulo :saturating :excepting :widening]]
