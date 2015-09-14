@@ -9,3 +9,6 @@
 (defprotocol Applicative
   (pure [x y])
   (fapply [f a]))
+
+(defprotocol Monad
+  (bind [x f]))

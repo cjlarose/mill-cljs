@@ -1,5 +1,5 @@
 (ns mill.nar
-  (:require [mill.ct :refer [Functor Applicative fmap]]))
+  (:require [mill.ct :refer [Functor Applicative fmap Monad]]))
 
 (defrecord MaybeNaR [valid? value]
   Functor
@@ -13,6 +13,11 @@
   (fapply [this a]
     (if valid?
       (fmap a value)
+      this))
+  Monad
+  (bind [this f]
+    (if valid?
+      (f value)
       this)))
 
 (defn result [v]
